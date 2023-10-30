@@ -1,0 +1,8 @@
+{
+                "language": {
+                    "name": "PLONK_CSAT",
+                    "width": 3
+                },
+                "opcodes_supported": ["arithmetic"],
+                "black_box_functions_supported": []
+            }
