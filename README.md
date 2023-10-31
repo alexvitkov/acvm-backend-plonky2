@@ -2,9 +2,10 @@
 WIP noir backend for plonky2.
 
 
-## acvm-repo
-This is currently copy-pasted from the Noir repo. The crates.io packages for acvm are way out of date.
+## Copy Pasta from Noir
+acvm-repo copy-pasted from the Noir repo. The crates.io packages for acvm are way out of date.
 
+In the root Cargo.toml, workspace.dependencies are copy-pasted from Noir Cargo.toml 
 
 ## Some modifications to Noir needed!!!
 There's currently some barretenberg-specific assumptions in Noir.
