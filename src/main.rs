@@ -1,6 +1,18 @@
-use std::{eprintln, fs::{self, OpenOptions}, process::exit, io::{Write, self}};
+
+
+use std::{
+    eprintln,
+    fs::{self, OpenOptions},
+    io::{self, Write},
+    process::exit,
+};
 
 const VERSION: &str = "0.1.0";
+
+// since this binary is being called by noir, it's useful to log
+// what args we're being called with.
+const DUMP_OUTPUT: &str = "/home/vitkov/args.txt";
+
 
 struct Options {
     // not sure what some of these are, but the official backend takes them in as options:
@@ -19,16 +31,16 @@ fn dump_args() -> io::Result<()> {
     let mut file = OpenOptions::new()
         .create(true)
         .append(true)
-        .open("/home/vitkov/args.txt")?;
+        .open(DUMP_OUTPUT)?;
 
     // Join the strings with spaces and write to the file
-    let concatenated_string = args.join(" ");
+    let concatenated_string = args.join(" ") + "\n";
     file.write_all(concatenated_string.as_bytes())?;
     Ok(())
 }
 
 fn main() {
-    dump_args();
+    dump_args().unwrap();
 
     let mut options = Options {
         bytecode_path: "./target/acir.gz".to_string(),
@@ -81,7 +93,7 @@ fn main() {
         "info" => {
             let output = r#"{
                 "language": {
-                    "name": "PLONK_CSAT",
+                    "name": "PLONK-CSAT",
                     "width": 3
                 },
                 "opcodes_supported": ["arithmetic"],
@@ -90,9 +102,20 @@ fn main() {
 
             let outfile = options.output.unwrap_or("info.json".to_owned());
             if outfile == "-" {
-                eprint!("{}", output);
+                print!("{}", output);
             } else {
                 fs::write(outfile, output).expect("failed to write to file");
+            }
+        }
+        "prove" => {
+            let outfile = options.output.unwrap_or("./proofs/proof".to_owned());
+
+            if outfile == "-" {
+                println!("pproofproofproofproofproofproofproofproofproofproofproofproofroofproofproof");
+
+                eprintln!("info written to stdout");
+            } else {
+                eprintln!("info written to {outfile}");
             }
         }
         _ => {
