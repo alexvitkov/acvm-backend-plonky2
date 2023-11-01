@@ -1,18 +1,14 @@
-
-
 use std::{
     eprintln,
-    fs::{self, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{self, Write},
     process::exit,
 };
 
+use acir::circuit::Circuit;
+
 const VERSION: &str = "0.1.0";
-
-// since this binary is being called by noir, it's useful to log
-// what args we're being called with.
-const DUMP_OUTPUT: &str = "/home/vitkov/args.txt";
-
+const LOG_FILE: &str = "/home/vitkov/plonky2-backend-log.txt";
 
 struct Options {
     // not sure what some of these are, but the official backend takes them in as options:
@@ -25,22 +21,24 @@ struct Options {
     pub output: Option<String>,
 }
 
-fn dump_args() -> io::Result<()> {
+fn dump_args(log: &mut File) -> io::Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(DUMP_OUTPUT)?;
-
-    // Join the strings with spaces and write to the file
+    writeln!(log, "-------------")?;
+    write!(log, "Called with arguments args: ")?;
     let concatenated_string = args.join(" ") + "\n";
-    file.write_all(concatenated_string.as_bytes())?;
+    log.write(concatenated_string.as_bytes())?;
+    writeln!(log, "")?;
     Ok(())
 }
 
-fn main() {
-    dump_args().unwrap();
+fn run() -> io::Result<()> {
+    let mut log = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(LOG_FILE)?;
+
+    dump_args(&mut log)?;
 
     let mut options = Options {
         bytecode_path: "./target/acir.gz".to_string(),
@@ -89,6 +87,7 @@ fn main() {
     match cmd.as_str() {
         "--version" => {
             println!("{}", VERSION);
+            Ok(())
         }
         "info" => {
             let output = r#"{
@@ -106,20 +105,39 @@ fn main() {
             } else {
                 fs::write(outfile, output).expect("failed to write to file");
             }
+            Ok(())
         }
         "prove" => {
             let outfile = options.output.unwrap_or("./proofs/proof".to_owned());
 
-            if outfile == "-" {
-                println!("pproofproofproofproofproofproofproofproofproofproofproofproofroofproofproof");
+            let file = File::open(options.bytecode_path)?;
+            let circuit = Circuit::read(file)?;
 
-                eprintln!("info written to stdout");
+            writeln!(log, "Circuit: {}", circuit)?;
+
+            if outfile == "-" {
+                println!(
+                    "pproofproofproofproofproofproofproofproofproofproofproofproofroofproofproof"
+                );
+
+                writeln!(log, "info written to stdout")?;
             } else {
-                eprintln!("info written to {outfile}");
+                writeln!(log, "info written to {outfile}")?;
             }
+            Ok(())
         }
         _ => {
             eprintln!("unknown command {cmd}");
+            exit(1);
+        }
+    }
+}
+
+fn main() {
+    match run() {
+        Ok(_) => {}
+        Err(err) => {
+            eprintln!("fatal error: {}", err);
             exit(1);
         }
     }
